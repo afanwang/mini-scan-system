@@ -1,0 +1,42 @@
+version: '3'
+services:
+
+  # Starts the P/S emulator
+  pubsub:
+    image: gcr.io/google.com/cloudsdktool/cloud-sdk:316.0.0-emulators
+    ports:
+      - "8085:8085"
+    entrypoint: gcloud beta emulators pubsub start --project test-project --host-port 0.0.0.0:8085
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://pubsub:8085"]
+      interval: 5s
+      timeout: 10s
+      retries: 3
+
+  # Creates a topic
+  mk-topic:
+    image: alpine/httpie
+    depends_on:
+      pubsub:
+        condition: service_healthy
+    command: PUT http://pubsub:8085/v1/projects/test-project/topics/scan-topic
+
+  # Creates a subscription
+  mk-subscription:
+    image: alpine/httpie
+    depends_on:
+      mk-topic:
+        condition: service_completed_successfully
+    command: PUT http://pubsub:8085/v1/projects/test-project/subscriptions/scan-sub topic=projects/test-project/topics/scan-topic --ignore-stdin 
+
+  # Runs the "scanner"
+  scanner:
+    depends_on:
+      mk-topic:
+        condition: service_completed_successfully
+    environment:
+      PUBSUB_EMULATOR_HOST: pubsub:8085
+      PUBSUB_PROJECT_ID: test-project
+    build:
+      context: .
+      dockerfile: ./cmd/scanner/Dockerfile

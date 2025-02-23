@@ -6,10 +6,12 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"os"
 	"time"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/censys/scan-takehome/pkg/scanning"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -22,14 +24,26 @@ func main() {
 
 	ctx := context.Background()
 
-	client, err := pubsub.NewClient(ctx, *projectId)
+	flag.Parse()
+	flag.VisitAll(func(f *flag.Flag) {
+		fmt.Printf("%s: %v\n", f.Name, f.Value)
+	})
+
+	emulatorHost := os.Getenv("PUBSUB_EMULATOR_HOST")
+	fmt.Printf("emulatorHost: %s\n", emulatorHost)
+
+	client, err := pubsub.NewClient(ctx, *projectId,
+		option.WithEndpoint(emulatorHost),
+		option.WithoutAuthentication(),
+	)
 	if err != nil {
 		panic(err)
 	}
+	defer client.Close()
 
 	topic := client.Topic(*topicId)
 
-	for range time.Tick(time.Second) {
+	for range time.Tick(time.Nanosecond) {
 
 		scan := &scanning.Scan{
 			Ip:        fmt.Sprintf("1.1.1.%d", rand.Intn(255)),
@@ -53,6 +67,7 @@ func main() {
 			panic(err)
 		}
 
+		// fmt.Printf("publish %s\n", encoded)
 		_, err = topic.Publish(ctx, &pubsub.Message{Data: encoded}).Get(ctx)
 		if err != nil {
 			panic(err)

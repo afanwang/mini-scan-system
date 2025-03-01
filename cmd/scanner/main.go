@@ -9,8 +9,9 @@ import (
 	"os"
 	"time"
 
+	"mini-scan/pkg/scanning"
+
 	"cloud.google.com/go/pubsub"
-	"github.com/censys/scan-takehome/pkg/scanning"
 	"google.golang.org/api/option"
 )
 

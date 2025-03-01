@@ -10,8 +10,9 @@ import (
 	"log"
 	"os"
 
+	"mini-scan/pkg/scanning"
+
 	"cloud.google.com/go/pubsub"
-	"github.com/censys/scan-takehome/pkg/scanning"
 	_ "github.com/mattn/go-sqlite3"
 	"google.golang.org/api/option"
 )

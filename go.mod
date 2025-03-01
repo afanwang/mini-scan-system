@@ -1,4 +1,4 @@
-module github.com/censys/scan-takehome
+module  mini-scan
 
 go 1.20
 

@@ -8,7 +8,37 @@
 
 ## Mini-Scan Project
 
-As you've heard by now, We scans the internet at an incredible scale. Processing the results necessitates scaling horizontally across thousands of machines. One key aspect of our architecture is the use of distributed queues to pass data between machines.
+As you've heard by now, we scans the internet at an incredible scale. Processing the results necessitates scaling horizontally across thousands of machines. One key aspect of our architecture is the use of distributed queues to pass data between machines.
+
+The docker-compose.yml file sets up a toy example of a scanner. It spins up a Google Pub/Sub emulator, creates a topic and subscription, and publishes scan results to the topic. It can be run via docker compose up.
+
+Your job is to build the data processing side. It should:
+
+- Pull scan results from the subscription scan-sub.
+
+- Maintain an up-to-date record of each unique (ip, port, service). This should contain when the service was last scanned and a string containing the service's response.
+
+NOTE The scanner can publish data in two formats, shown below. In both of the following examples, the service response should be stored as: "hello world".
+
+```json
+{
+  // ...
+  "data_version": 1,
+  "data": {
+    "response_bytes_utf8": "aGVsbG8gd29ybGQ="
+  }
+}
+
+{
+  // ...
+  "data_version": 2,
+  "data": {
+    "response_str": "hello world"
+  }
+}
+```
+
+Your processing application should be able to be scaled horizontally, but this isn't something you need to actually do. The processing application should use at-least-once semantics where ever applicable.
 
 ## Setup
 After understanding the README and went through the existing code in the repo, I know there will be a google pubsub emulator running in Docker, setup the topic and publish the scan result the topic.
